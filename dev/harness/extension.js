@@ -469,6 +469,18 @@ export default class Harness extends Extension {
         this.settings.reset('light-mode');
         win?.delete(global.get_current_time());
         await sleep(500);
+
+        // The "Sobre" page on its own (dev/show-about.js).
+        const launcher = new Gio.SubprocessLauncher({flags: Gio.SubprocessFlags.NONE});
+        launcher.setenv('WAYLAND_DISPLAY', GLib.getenv('AEROTAB_WAYLAND'), true);
+        launcher.setenv('GDK_BACKEND', 'wayland', true);
+        launcher.setenv('GTK_A11Y', 'none', true);
+        const about = launcher.spawnv(['gjs', '-m', `${DEV}/show-about.js`, GLib.path_get_dirname(DEV)]);
+        const shown = await this.waitFor(() => global.display.focus_window?.get_title() === 'AeroTab — Sobre', 15000);
+        this.check('[prefs] Sobre page opens', shown);
+        await sleep(2000);
+        await this.shot('prefs-about');
+        about.force_exit();
     }
 
     async multiMonitorScenario() {

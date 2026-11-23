@@ -11,6 +11,7 @@ glib-compile-schemas schemas/
 gnome-extensions pack --force \
     --extra-source=lib \
     --extra-source=prefs \
+    --extra-source=icons \
     --out-dir=. .
 
 [[ "${1:-}" == --pack ]] && { echo "Created aerotab@bispov19.shell-extension.zip"; exit 0; }

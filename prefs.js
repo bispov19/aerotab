@@ -6,6 +6,7 @@ import Gtk from 'gi://Gtk?version=4.0';
 
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import {criarPaginaSobre} from './prefs/about.js';
 import {StylePreview} from './prefs/stylePreview.js';
 
 const STYLES = [
@@ -31,9 +32,15 @@ export default class AeroTabPreferences extends ExtensionPreferences {
         Gtk.StyleContext.add_provider_for_display(window.get_display(), provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 
+        // Lets pages use the extension's own icons (icons/aerotab-symbolic.svg).
+        const iconTheme = Gtk.IconTheme.get_for_display(window.get_display());
+        const iconsPath = `${this.path}/icons`;
+        if (!iconTheme.get_search_path().includes(iconsPath))
+            iconTheme.add_search_path(iconsPath);
+
         const page = new Adw.PreferencesPage({
             title: 'AeroTab',
-            icon_name: 'view-paged-symbolic',
+            icon_name: 'aerotab-symbolic',
         });
         window.add(page);
 
@@ -43,6 +50,7 @@ export default class AeroTabPreferences extends ExtensionPreferences {
         page.add(this._appearanceGroup(settings));
         page.add(this._windowsGroup(settings));
         page.add(this._resetGroup(settings));
+        window.add(criarPaginaSobre(this));
 
         // Previews follow tilt / reflection / light mode live.
         const changedId = settings.connect('changed', (_s, key) => {

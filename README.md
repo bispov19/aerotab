@@ -1,3 +1,5 @@
+<p align="center"><img src="icons/aerotab-logo.svg" width="128" alt="AeroTab"></p>
+
 # AeroTab
 
 Alt+Tab 3D no estilo "Flip" para o GNOME Shell 51. A janela selecionada fica
@@ -69,6 +71,8 @@ lib/styles/dark.js      estilo Escuro
 lib/styles/desktop.js   estilo Área de trabalho (papel de parede + desfoque)
 prefs.js                janela de preferências
 prefs/stylePreview.js   prévia desenhada de cada estilo
+prefs/about.js          página "Sobre" (autor, links, créditos)
+icons/                  logo e ícone simbólico
 schemas/                configurações (GSettings)
 dev/                    harness de testes (fica fora do zip)
 ```
