@@ -1,0 +1,65 @@
+/* AeroTab */
+
+.aerotab-backdrop-dark {
+    background-color: #000;
+}
+
+/* Desktop style in light mode: dimming without blur. */
+.aerotab-backdrop-dim {
+    background-color: rgba(0, 0, 0, 0.42);
+}
+
+/* Outline on the selected window, like the thin accent frame in the reference. */
+.aerotab-card-frame {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 2px;
+}
+
+.aerotab-card-placeholder {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+}
+
+.aerotab-close-button {
+    border-radius: 99px;
+    background-color: rgba(30, 30, 30, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #fff;
+    padding: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.aerotab-close-button:hover {
+    background-color: #c01c28;
+    border-color: #e01b24;
+}
+
+.aerotab-close-button StIcon {
+    icon-size: 14px;
+}
+
+.aerotab-title {
+    color: #fff;
+    font-size: 21pt;
+    font-weight: 500;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.aerotab-app-name {
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 14pt;
+    padding-top: 4px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.aerotab-scrollbar {
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.aerotab-scrollbar-thumb {
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.60);
+}

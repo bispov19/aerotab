@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.aerotab"
+          path="/org/gnome/shell/extensions/aerotab/">
+
+    <key name="enable-switcher" type="b">
+      <default>true</default>
+      <summary>Use the AeroTab Alt+Tab</summary>
+      <description>When off, Alt+Tab goes back to the default GNOME switcher.</description>
+    </key>
+
+    <key name="style" type="s">
+      <choices>
+        <choice value="dark"/>
+        <choice value="desktop"/>
+      </choices>
+      <default>'dark'</default>
+      <summary>Switcher style</summary>
+      <description>"dark": black background. "desktop": blurred and dimmed wallpaper.</description>
+    </key>
+
+    <key name="animation-duration" type="i">
+      <range min="0" max="1000"/>
+      <default>280</default>
+      <summary>Animation duration in milliseconds</summary>
+      <description>0 turns animations off.</description>
+    </key>
+
+    <key name="show-reflection" type="b">
+      <default>true</default>
+      <summary>Show the floor reflection under the windows</summary>
+    </key>
+
+    <key name="tilt-angle" type="i">
+      <range min="0" max="75"/>
+      <default>48</default>
+      <summary>Tilt angle of the side windows, in degrees</summary>
+    </key>
+
+    <key name="side-windows" type="i">
+      <range min="1" max="8"/>
+      <default>4</default>
+      <summary>Windows shown on each side</summary>
+      <description>Extra windows are stacked behind the last one with lower opacity.</description>
+    </key>
+
+    <key name="all-workspaces" type="b">
+      <default>false</default>
+      <summary>Show windows from all workspaces</summary>
+      <description>When off, only windows of the current workspace are shown.</description>
+    </key>
+
+    <key name="current-monitor-only" type="b">
+      <default>false</default>
+      <summary>Show only windows on the monitor where the switcher opens</summary>
+    </key>
+
+    <key name="light-mode" type="b">
+      <default>false</default>
+      <summary>Light mode for integrated GPUs</summary>
+      <description>Turns off the reflection and the wallpaper blur and flattens the perspective.</description>
+    </key>
+  </schema>
+</schemalist>

@@ -1,0 +1,11 @@
+{
+  "uuid": "aerotab@bispov19",
+  "name": "AeroTab",
+  "description": "A 3D \"Flip\" style Alt+Tab window switcher.\n\nThe selected window stands in the middle, facing you; the others line up on both sides, tilted like the walls of a corridor, with a reflection on the floor. Two styles: Dark (black background) and Desktop (your wallpaper, blurred and dimmed).\n\nAlt+Tab moves forward, Alt+Shift+Tab moves back, releasing Alt switches to the selected window, Esc cancels. Arrow keys, mouse wheel and clicks also work, and the X button closes the selected window. Turning AeroTab off (or the extension) brings back the default GNOME Alt+Tab.",
+  "shell-version": [
+    "51"
+  ],
+  "url": "https://github.com/bispov19/aerotab",
+  "settings-schema": "org.gnome.shell.extensions.aerotab",
+  "version-name": "1.0.0"
+}
