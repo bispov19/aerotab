@@ -10,8 +10,10 @@ import {criarPaginaSobre} from './prefs/about.js';
 import {StylePreview} from './prefs/stylePreview.js';
 
 const STYLES = [
-    {id: 'dark', name: 'Escuro', caption: 'Fundo preto, como no Flip 3D clássico'},
-    {id: 'desktop', name: 'Área de trabalho', caption: 'Seu papel de parede, desfocado e escurecido'},
+    {id: 'dark', name: 'Escuro', caption: 'Corredor 3D sobre fundo preto, como no Flip 3D clássico'},
+    {id: 'desktop', name: 'Área de trabalho', caption: 'Corredor 3D sobre o seu papel de parede, desfocado e escurecido'},
+    {id: 'stack', name: 'Pilha 3D', caption: 'Janelas empilhadas em profundidade, a ativa à frente'},
+    {id: 'carousel', name: 'Carrossel 3D', caption: 'Fileira curva como o Cover Flow, vizinhas quase de lado'},
 ];
 
 const CSS = `
@@ -87,7 +89,13 @@ export default class AeroTabPreferences extends ExtensionPreferences {
             description: 'Escolha um estilo pela prévia e confirme em “Aplicar estilo”.',
         });
 
-        const box = new Gtk.Box({spacing: 12, homogeneous: true, margin_bottom: 12});
+        // 2 × 2 grid of previews.
+        const box = new Gtk.Grid({
+            column_spacing: 12,
+            row_spacing: 12,
+            column_homogeneous: true,
+            margin_bottom: 12,
+        });
         const buttons = new Map();
         let pending = settings.get_string('style');
 
@@ -136,7 +144,8 @@ export default class AeroTabPreferences extends ExtensionPreferences {
                 }
             });
             buttons.set(style.id, button);
-            box.append(button);
+            const index = buttons.size - 1;
+            box.attach(button, index % 2, Math.floor(index / 2), 1, 1);
         }
 
         apply.connect('clicked', () => {
@@ -175,7 +184,7 @@ export default class AeroTabPreferences extends ExtensionPreferences {
 
         const reflection = new Adw.SwitchRow({
             title: 'Reflexo no chão',
-            subtitle: 'Espelho das janelas sob elas, desvanecendo',
+            subtitle: 'Estilos Escuro e Área de trabalho: espelho das janelas sob elas',
         });
         settings.bind('show-reflection', reflection, 'active', Gio.SettingsBindFlags.DEFAULT);
         group.add(reflection);
@@ -183,7 +192,7 @@ export default class AeroTabPreferences extends ExtensionPreferences {
         const tilt = Adw.SpinRow.new_with_range(0, 75, 1);
         tilt.set({
             title: 'Inclinação das janelas laterais (graus)',
-            subtitle: '0 deixa as janelas de frente',
+            subtitle: 'Estilos Escuro e Área de trabalho. 0 deixa as janelas de frente',
         });
         settings.bind('tilt-angle', tilt, 'value', Gio.SettingsBindFlags.DEFAULT);
         group.add(tilt);

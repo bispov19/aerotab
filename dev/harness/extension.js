@@ -14,7 +14,7 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 const UUID = 'aerotab@bispov19';
 const OUT = GLib.getenv('AEROTAB_TEST_OUT');
 const DEV = GLib.getenv('AEROTAB_DEV_DIR');
-const COUNTS = (GLib.getenv('AEROTAB_TEST_COUNTS') ?? '1,2,5,15').split(',').map(Number);
+const COUNTS = (GLib.getenv('AEROTAB_TEST_COUNTS') ?? '1,2,5,15,22').split(',').map(Number);
 const MULTI_MONITOR = GLib.getenv('AEROTAB_MULTI_MONITOR') === '1';
 const PREFS = GLib.getenv('AEROTAB_PREFS') === '1';
 
@@ -181,6 +181,15 @@ export default class Harness extends Extension {
             const seat = global.stage.context.get_backend().get_default_seat();
             this._kbd = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
             this._ptr = seat.create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
+            // The first absolute motion of a new virtual pointer loses its
+            // x coordinate (lands at x=0): warm it up once.
+            // Stay away from the top-left hot corner (it opens the overview).
+            for (let i = 0; i < 2; i++) {
+                this._ptr.notify_absolute_motion(GLib.get_monotonic_time(), 960, 540);
+                await sleep(150);
+            }
+            Main.overview.hide();
+            await sleep(500);
             this.log(`monitors=${Main.layoutManager.monitors.length} DISPLAY=${GLib.getenv('DISPLAY')}`);
 
             if (PREFS)
@@ -249,7 +258,7 @@ export default class Harness extends Extension {
         await sleep(300);
         await this.altUp();
         await sleep(700);
-        this.check(`[${n}] releasing Alt closes the switcher`, !this.switcher && !Main.uiGroup.get_children().some(c => c.constructor.name.includes('FlipSwitcher')));
+        this.check(`[${n}] releasing Alt closes the switcher`, !this.switcher && !Main.uiGroup.get_children().some(c => c.constructor.name.includes('AeroTabSwitcher')));
         this.check(`[${n}] keyboard released (no modal left)`, this.keyboardFree(), `modalCount=${Main.modalCount}`);
         this.check(`[${n}] selected window got focus`, global.display.focus_window === mru[expected],
             `${global.display.focus_window?.get_title()} vs ${mru[expected]?.get_title()}`);
@@ -300,8 +309,9 @@ export default class Harness extends Extension {
             if (point) {
                 await this.click(...point);
                 await sleep(600);
-                this.check(`[${n}] click activates that window`, global.display.focus_window === target.window,
-                    global.display.focus_window?.get_title());
+                const fw = global.display.focus_window;
+                this.check(`[${n}] click activates that window`, fw === target.window,
+                    `focus=${fw?.get_title()} (${fw?.get_client_type()}) target=${target.window.get_title()} (${target.window.get_client_type()}) point=${point.map(Math.round)}`);
                 this.check(`[${n}] click: switcher closed, keyboard free`, !this.switcher && this.keyboardFree());
             }
             await this.altUp();
@@ -327,25 +337,101 @@ export default class Harness extends Extension {
             this.check(`[${n}] X: keyboard free afterwards`, this.keyboardFree());
         }
 
-        // 7) Desktop style (+ light mode with 15 windows).
-        this.settings.set_string('style', 'desktop');
-        sw = await this.openSwitcher(900);
-        this.check(`[${n}] desktop style opens`, sw?.isShown);
-        await this.shot(`n${String(n).padStart(2, '0')}-desktop`);
+        // 7) Every other style: opens, navigates, switches focus the same
+        //    way; screenshots of each (+ light mode with many windows).
+        this._minimized = [];
+        if (n === 5) {
+            // Minimized windows must show up in every style: one Wayland
+            // (snapshot) and one X11 (no picture: app icon).
+            const wins = this.testWindows(tag);
+            this._minimized = [
+                wins.find(w => w.get_client_type() === Meta.WindowClientType.WAYLAND),
+                wins.find(w => w.get_client_type() === Meta.WindowClientType.X11),
+            ].filter(Boolean);
+            for (const w of this._minimized)
+                w.minimize();
+            await sleep(800);
+        }
+        const tagN = String(n).padStart(2, '0');
+        for (const style of ['desktop', 'stack', 'carousel']) {
+            this.settings.set_string('style', style);
+            // Activating a window in the previous style may have restored it.
+            if (this._minimized.some(m => !m.minimized)) {
+                for (const m of this._minimized)
+                    m.minimize();
+                await sleep(800);
+            }
+            mru = this.mru();
+            sw = await this.openSwitcher(900);
+            this.check(`[${n}] ${style}: opens`, sw?.isShown);
+            this.check(`[${n}] ${style}: one card per window`, sw?.cards.length === mru.length,
+                `${sw?.cards.length} vs ${mru.length}`);
+            for (const m of this._minimized) {
+                const card = sw?.cards.find(c => c.window === m);
+                const kind = m.get_client_type() === Meta.WindowClientType.X11 ? 'X11' : 'Wayland';
+                // No picture of a minimized window exists: the card must
+                // show the app-icon placeholder instead of nothing.
+                const painted = card?.get_children().some(c =>
+                    c.get_first_child()?.has_style_class_name?.('aerotab-card-placeholder'));
+                this.check(`[${n}] ${style}: minimized ${kind} window has a visible card`, !!painted);
+            }
+            await sleep(300);
+            if (GLib.getenv('AEROTAB_DEBUG_CARDS'))
+                for (const c of sw.cards) {
+                    const e = c.get_transformed_extents();
+                    const child = c.get_first_child()?.get_first_child();
+                    this.log(`DEBUG ${style} ${c.window.get_title()} x11=${c.window.get_client_type() === 1} min=${c.window.minimized} vis=${c.visible} op=${c.opacity} ext=${Math.round(e.origin.x)},${Math.round(e.origin.y)} ${Math.round(e.size.width)}x${Math.round(e.size.height)} child=${child?.constructor.name} content=${child?.content} actor=${c.window.get_compositor_private()?.get_size()}`);
+                }
+            await this.shot(`n${tagN}-${style}`);
+            let expect = sw.selectedIndex;
+            if (mru.length > 1) {
+                await this.tap(Clutter.KEY_Tab);
+                expect = (expect + 1) % mru.length;
+                await this.scroll(Clutter.ScrollDirection.DOWN);
+                expect = (expect + 1) % mru.length;
+                await this.tap(Clutter.KEY_Left);
+                expect = (expect - 1 + mru.length) % mru.length;
+                this.check(`[${n}] ${style}: Tab / wheel / arrows move`, sw.selectedIndex === expect, sw.selectedIndex);
+                await sleep(500);
+                await this.shot(`n${tagN}-${style}-next`);
+            }
+            const target = sw.cards[expect].window;
+            await this.altUp();
+            await sleep(700);
+            this.check(`[${n}] ${style}: releasing Alt focuses the selected window`,
+                global.display.focus_window === target && !this.switcher && this.keyboardFree(),
+                global.display.focus_window?.get_title());
+            if (n >= 15) {
+                this.settings.set_boolean('light-mode', true);
+                sw = await this.openSwitcher(900);
+                this.check(`[${n}] ${style} light mode opens`, sw?.isShown);
+                await this.shot(`n${tagN}-${style}-light`);
+                await this.tap(Clutter.KEY_Escape);
+                await this.altUp();
+                await sleep(500);
+                this.settings.reset('light-mode');
+            }
+        }
+
+        // The blurred backdrop is built once and reused, never destroyed
+        // with the switcher.
+        this.settings.set_string('style', 'carousel');
+        sw = await this.openSwitcher(700);
+        const backdrop1 = sw?._backdrop;
         await this.tap(Clutter.KEY_Escape);
         await this.altUp();
         await sleep(500);
-        if (n >= 15) {
-            this.settings.set_boolean('light-mode', true);
-            sw = await this.openSwitcher(900);
-            this.check(`[${n}] light mode opens`, sw?.isShown);
-            await this.shot(`n${n}-desktop-light`);
-            await this.tap(Clutter.KEY_Escape);
-            await this.altUp();
-            await sleep(500);
-            this.settings.reset('light-mode');
-        }
+        sw = await this.openSwitcher(700);
+        this.check(`[${n}] blurred backdrop reused between openings`,
+            !!backdrop1 && sw?._backdrop === backdrop1);
+        await this.tap(Clutter.KEY_Escape);
+        await this.altUp();
+        await sleep(500);
+        this.check(`[${n}] cached backdrop detached after closing`, !backdrop1?.get_parent());
         this.settings.reset('style');
+        for (const m of this._minimized)
+            m.unminimize();
+        this._minimized = [];
 
         if (n === 5)
             await this.toggleScenarios();
@@ -492,15 +578,20 @@ export default class Harness extends Extension {
         const focus = global.display.focus_window;
         focus.move_to_monitor(1);
         await sleep(500);
-        const sw = await this.openSwitcher(900);
-        const [sx] = sw._scene.get_transformed_position();
         const m1 = Main.layoutManager.monitors[1];
-        this.check('[monitors] opens on the focused window\'s monitor', Math.round(sx) === m1.x, `${sx} vs ${m1.x}`);
-        await this.shot('multimonitor');
-        await this.tap(Clutter.KEY_Escape);
-        await this.altUp();
-        await sleep(500);
-        this.check('[monitors] keyboard free', this.keyboardFree());
+        for (const style of ['dark', 'desktop', 'stack', 'carousel']) {
+            this.settings.set_string('style', style);
+            const sw = await this.openSwitcher(900);
+            const [sx] = sw._scene.get_transformed_position();
+            this.check(`[monitors] ${style}: opens on the focused window's monitor`,
+                Math.round(sx) === m1.x, `${sx} vs ${m1.x}`);
+            await this.shot(`multimonitor-${style}`);
+            await this.tap(Clutter.KEY_Escape);
+            await this.altUp();
+            await sleep(500);
+            this.check(`[monitors] ${style}: keyboard free`, this.keyboardFree());
+        }
+        this.settings.reset('style');
         proc.force_exit();
     }
 }

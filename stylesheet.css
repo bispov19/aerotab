@@ -15,8 +15,14 @@
     border-radius: 2px;
 }
 
+.aerotab-card-shade {
+    background-color: #000;
+}
+
+/* Card without a picture (minimized X11 window, window still mapping). */
 .aerotab-card-placeholder {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(28, 28, 34, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 8px;
 }
 
@@ -43,6 +49,14 @@
     font-size: 21pt;
     font-weight: 500;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.aerotab-title-row {
+    spacing: 10px;
+}
+
+.aerotab-app-icon {
+    icon-size: 28px;
 }
 
 .aerotab-app-name {

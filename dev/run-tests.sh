@@ -3,7 +3,7 @@
 # test harness. Nothing touches your real session: settings (dconf),
 # extensions, runtime dir, D-Bus session and Wayland socket are all private.
 #
-#   dev/run-tests.sh [output-dir]          # 1, 2, 5 and 15 windows
+#   dev/run-tests.sh [output-dir]          # 1, 2, 5, 15 and 22 windows, all 4 styles
 #   MULTI=1 dev/run-tests.sh [output-dir]  # two monitors
 #   PREFS=1 dev/run-tests.sh [output-dir]  # screenshots of the preferences window
 #
@@ -34,7 +34,7 @@ env -i HOME="$HOME" USER="$USER" PATH="$PATH" LANG="${LANG:-C.UTF-8}" \
     XDG_DATA_HOME="$SANDBOX/data" XDG_RUNTIME_DIR="$SANDBOX/runtime" \
     XDG_DATA_DIRS=/usr/local/share:/usr/share \
     AEROTAB_TEST_OUT="$OUT" AEROTAB_DEV_DIR="$DEV" AEROTAB_WAYLAND=aerotab-test \
-    AEROTAB_MULTI_MONITOR="${MULTI:-0}" AEROTAB_PREFS="${PREFS:-0}" AEROTAB_TEST_COUNTS="${COUNTS:-1,2,5,15}" \
+    AEROTAB_MULTI_MONITOR="${MULTI:-0}" AEROTAB_PREFS="${PREFS:-0}" AEROTAB_TEST_COUNTS="${COUNTS:-1,2,5,15,22}" AEROTAB_DEBUG_CARDS="${DEBUG_CARDS:-}" \
     timeout 600 dbus-run-session -- bash -c '
         gsettings set org.gnome.shell enabled-extensions "[\"aerotab@bispov19\", \"aerotab-harness@dev\"]"
         gsettings set org.gnome.shell welcome-dialog-last-shown-version "999"

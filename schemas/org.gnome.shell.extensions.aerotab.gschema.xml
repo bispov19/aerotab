@@ -13,10 +13,12 @@
       <choices>
         <choice value="dark"/>
         <choice value="desktop"/>
+        <choice value="stack"/>
+        <choice value="carousel"/>
       </choices>
       <default>'dark'</default>
       <summary>Switcher style</summary>
-      <description>"dark": black background. "desktop": blurred and dimmed wallpaper.</description>
+      <description>"dark": Flip 3D on black. "desktop": Flip 3D on the blurred, dimmed wallpaper. "stack": windows stacked in depth (Pilha 3D). "carousel": Cover Flow row (Carrossel 3D).</description>
     </key>
 
     <key name="animation-duration" type="i">
@@ -34,7 +36,7 @@
     <key name="tilt-angle" type="i">
       <range min="0" max="75"/>
       <default>48</default>
-      <summary>Tilt angle of the side windows, in degrees</summary>
+      <summary>Tilt angle of the side windows, in degrees (Escuro / Área de trabalho)</summary>
     </key>
 
     <key name="side-windows" type="i">
